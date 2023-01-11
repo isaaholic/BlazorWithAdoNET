@@ -1,0 +1,193 @@
+﻿@page "/"
+@using System.Data.SqlClient
+@using ADONETHWOne.Models;
+@using ADONETHWOne.Queries;
+
+<PageTitle>Index</PageTitle>
+
+<h2>Category</h2>
+<select @onchange="@OnSelectCategory">
+<option value="none">-</option>
+    @foreach (var item in categories)
+    {
+                               <option value="@item.Name">@item.Name</option>
+    }
+</select>
+
+<br />
+<h2>Authors</h2>
+<select @onchange="@OnSelectAuthors" disabled="@isDisabled">
+<option value="none">-</option>
+    @foreach (var item in authors)
+    {
+                                     <option value="@item.FirstName">@item.FirstName</option>
+    }
+</select>
+
+<br />
+<input disabled="@isSearchDisabled" type="text" placeholder="Search..." @onchange="OnSearchChange" />
+<br />
+@if (aBooks.Count > 0)
+{
+                 <table class="table">
+
+               <thead>
+                  <tr>
+                     <th scope="col">#</th>
+                     <th scope="col">Name</th>
+                     <th scope="col">Pages</th>
+                     <th scope="col">YearPress</th>
+                         <th scope="col">Id_Themes</th>
+                             <th scope="col">Id_Press</th>
+                     <th scope="col">Comment</th>
+                     <th scope="col">Quantity</th>
+                     <th scope="col">update</th>
+                     <th scope="col">delete</th>
+                     <th scope="col"><input type="button" @onclick="()=>{selectedBook = new();}" value="Add"/></th>
+                  </tr>
+               </thead>
+               <tbody>
+            @foreach (var b in aBooks)
+            {
+                              <tr class="text-black">
+                                  <th scope="row">@b.Id</th>
+                                  <td>@b.Name</td>
+                                  <td>@b.Pages</td>
+                                  <td>@b.YearPress</td>
+                                          <td>@b.Id_Themes</td>
+                                                  <td>@b.Id_Press</td>
+                                  <td>@b.Comment</td>
+                                  <td>@b.Quantity</td>
+                                  <td><input type="button" value="Update" @onclick="()=>{selectedBook=b;}" /></td>
+                                  <td><input type="button" value="Delete" @onclick="()=>OnDelete(b)" ></td>
+                              </tr>
+            }
+               </tbody>
+                 </table>
+}
+@if (selectedBook is not null)
+{
+            <br />
+            <form>
+                <label>Name</label>
+                <input type="text" @bind-value="@selectedBook.Name">
+                <label>Pages</label>
+                    <input type="number" @bind-value="@selectedBook.Pages">
+                <label>YearPress</label>
+                    <input type="number" @bind-value="@selectedBook.YearPress">
+                <label>Id_Themes</label>
+                    <input min="1" max="9" type="number" @bind-value="@selectedBook.Id_Themes">
+                        <label>Id_Press</label>
+                        <input min="1" max="7" type="number" @bind-value="@selectedBook.Id_Press">
+                <label>Comment</label>
+                    <input type="text" @bind-value="@selectedBook.Comment">
+                <label>Quantity</label>
+                    <input type="number" @bind-value="@selectedBook.Quantity">
+        @if (selectedBook.Id > 0)
+        {
+                    <input type="button" value="Save" @onclick="()=>OnUpdate(selectedBook)" />
+        }
+        else
+        {
+                <input type="button" value="Save" @onclick="()=>OnAppend(selectedBook)" />
+        }
+            </form>
+}
+
+@code {
+    DataAccess dataAccess = new();
+    List<Category> categories = new();
+    List<Author> authors = new();
+    List<Book> aBooks = new();
+    List<Book> mainBooks = new();
+    string selectedCategory = "none";
+    string selectedAuthor = "none";
+    string searchText;
+    Book? selectedBook;
+    bool isDisabled = true;
+    bool isSearchDisabled = true;
+
+    void OnSearchChange(ChangeEventArgs e)
+    {
+        searchText = e.Value.ToString();
+        aBooks = string.IsNullOrWhiteSpace(searchText) switch
+        {
+            true => dataAccess.ReadDataFromBooks(selectedAuthor),
+            false => dataAccess.ReadDataFromBooks(selectedAuthor).Where(s=>s.Name.Contains(searchText,StringComparison.OrdinalIgnoreCase)).ToList()
+        };
+    }
+
+    void OnDelete(Book book)
+    {
+        var isSucc = dataAccess.RemoveBook(book.Id);
+        if (isSucc)
+        {
+            aBooks.Remove(book);
+            StateHasChanged();
+        }
+    }
+
+    void OnAppend(Book book)
+    {
+        book.Id = dataAccess.ReturnPossibleBookId();
+        book.Id_Category = categories.Find(c => c.Name == selectedCategory).Id;
+        book.Id_Author = authors.Find(a => a.FirstName == selectedAuthor).Id;
+        var isSucc = dataAccess.AddBook(book);
+        if (isSucc)
+        {
+            aBooks.Add(book);
+            selectedBook = null;
+            StateHasChanged();
+        }
+    }
+
+    void OnUpdate(Book book)
+    {
+        var isSucc = dataAccess.UpdateBook(book);
+        if (isSucc)
+        {
+            aBooks[aBooks.FindIndex(b => b.Id == book.Id)] = book;
+            selectedBook = null;
+            StateHasChanged();
+        }
+    }
+
+    void OnSelectCategory(ChangeEventArgs e)
+    {
+        selectedCategory = e.Value.ToString();
+        if (selectedCategory != "none")
+        {
+            isDisabled = false;
+            authors.Clear();
+            authors = dataAccess.ReadDataFromAuthors(selectedCategory);
+        }
+        else
+        {
+            isDisabled = true;
+            authors.Clear();
+            aBooks.Clear();
+        }
+        selectedBook = null;
+    }
+
+    void OnSelectAuthors(ChangeEventArgs e)
+    {
+        selectedAuthor = e.Value.ToString();
+        if (selectedAuthor != "none")
+        {
+            aBooks = dataAccess.ReadDataFromBooks(selectedAuthor);
+            isSearchDisabled = false;
+        }
+        else
+        {
+            aBooks.Clear();
+            isSearchDisabled = true;
+        }
+        selectedBook = null;
+    }
+
+    protected override void OnInitialized()
+    {
+        categories = dataAccess.ReadDataFromCatagories();
+    }
+}
