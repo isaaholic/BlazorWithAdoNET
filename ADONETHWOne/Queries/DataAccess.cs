@@ -35,7 +35,7 @@ namespace ADONETHWOne.Queries
             {
                 conn?.Open();
 
-                using SqlCommand cmd = new SqlCommand("SELECT * FROM Categories", conn);
+                using SqlCommand cmd = new SqlCommand("SELECT * FROM Categories AS [cgs]", conn);
                 reader = cmd.ExecuteReader();
 
 
@@ -64,7 +64,7 @@ namespace ADONETHWOne.Queries
             {
                 conn?.Open();
 
-                using SqlCommand cmd = new SqlCommand("SELECT Id FROM Categories WHERE Categories.Name=@p", conn);
+                using SqlCommand cmd = new SqlCommand("SELECT Id FROM Categories AS [cgs] WHERE [cgs].Name=@p", conn);
                 cmd.Parameters.AddWithValue("@p", categoryName);
                 id = int.Parse(cmd.ExecuteScalar().ToString());
             }
@@ -87,7 +87,7 @@ namespace ADONETHWOne.Queries
             {
                 conn?.Open();
 
-                using SqlCommand cmd = new SqlCommand("SELECT Id FROM Authors WHERE Authors.FirstName=@p", conn);
+                using SqlCommand cmd = new SqlCommand("SELECT Id FROM Authors AS [ath] WHERE [ath].FirstName=@p", conn);
                 cmd.Parameters.AddWithValue("@p", authorName);
                 id = int.Parse(cmd.ExecuteScalar().ToString());
             }
@@ -115,7 +115,7 @@ namespace ADONETHWOne.Queries
             {
                 conn?.Open();
 
-                using SqlCommand cmd = new SqlCommand("SELECT DISTINCT * FROM Authors WHERE Authors.Id IN (SELECT DISTINCT Id_Author AS [Aid] FROM Books WHERE Books.Id_Category = @p)", conn);
+                using SqlCommand cmd = new SqlCommand("SELECT DISTINCT * FROM Authors AS [ath] WHERE [ath].Id IN (SELECT DISTINCT Id_Author FROM Books AS [bs] WHERE [bs].Id_Category = @p)", conn);
                 cmd.Parameters.AddWithValue("@p", id.ToString());
                 reader = cmd.ExecuteReader();
 
@@ -149,7 +149,7 @@ namespace ADONETHWOne.Queries
             {
                 conn?.Open();
 
-                using SqlCommand cmd = new SqlCommand("SELECT * FROM Books WHERE Books.Id_Author = @p", conn);
+                using SqlCommand cmd = new SqlCommand("SELECT * FROM Books AS [bs] WHERE [bs].Id_Author = @p", conn);
                 cmd.Parameters.AddWithValue("@p", id);
                 reader = cmd.ExecuteReader();
 
@@ -244,7 +244,7 @@ namespace ADONETHWOne.Queries
             {
                 conn?.Open();
 
-                using SqlCommand cmd = new SqlCommand("SELECT Id FROM Books", conn);
+                using SqlCommand cmd = new SqlCommand("SELECT Id FROM Books AS [bs]", conn);
                 reader = cmd.ExecuteReader();
 
                 while (reader.Read())
