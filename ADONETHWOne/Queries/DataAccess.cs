@@ -9,7 +9,11 @@ namespace ADONETHWOne.Queries
         SqlConnection? conn = null;
         public DataAccess()
         {
-            string connectionString = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=Library;Integrated Security=True;";
+            var builder = new ConfigurationBuilder()
+                                .SetBasePath(Directory.GetCurrentDirectory())
+                                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
+            string connectionString = builder.Build().GetConnectionString("SqlServerLibary");
 
             try
             {
