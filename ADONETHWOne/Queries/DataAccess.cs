@@ -9,7 +9,11 @@ namespace ADONETHWOne.Queries
         SqlConnection? conn = null;
         public DataAccess()
         {
-            string connectionString = "Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=Library;Integrated Security=True;";
+            var builder = new ConfigurationBuilder()
+                                .SetBasePath(Directory.GetCurrentDirectory())
+                                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+
+            string connectionString = builder.Build().GetConnectionString("SqlServerLibary");
 
             try
             {
@@ -111,7 +115,7 @@ namespace ADONETHWOne.Queries
             {
                 conn?.Open();
 
-                using SqlCommand cmd = new SqlCommand("SELECT DISTINCT * FROM Authors WHERE Authors.Id IN (SELECT DISTINCT Id_Author FROM Books WHERE Books.Id_Category = @p)", conn);
+                using SqlCommand cmd = new SqlCommand("SELECT DISTINCT * FROM Authors WHERE Authors.Id IN (SELECT DISTINCT Id_Author AS [Aid] FROM Books WHERE Books.Id_Category = @p)", conn);
                 cmd.Parameters.AddWithValue("@p", id.ToString());
                 reader = cmd.ExecuteReader();
 
