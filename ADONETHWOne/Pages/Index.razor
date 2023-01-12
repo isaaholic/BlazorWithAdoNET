@@ -16,7 +16,7 @@
 
 <br />
 <h2>Authors</h2>
-<select @onchange="@OnSelectAuthors" disabled="@isDisabled">
+<select value="@selectedAuthor" @onchange="@OnSelectAuthors" disabled="@isDisabled">
 <option value="none">-</option>
     @foreach (var item in authors)
     {
@@ -160,6 +160,7 @@
             isDisabled = false;
             authors.Clear();
             aBooks.Clear();
+            selectedAuthor = "none";
             authors = dataAccess.ReadDataFromAuthors(selectedCategory);
         }
         else
